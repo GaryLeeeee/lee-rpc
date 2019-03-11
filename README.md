@@ -36,21 +36,68 @@ public class Server {
 ```
 ```Java
 public class Client {
+    @Reference
+    public static CalculatorService calculatorService;
+    @Reference
+    public static UserService userService;
+
     public static void main(String[] args) {
-        ClientProxy proxy = new ClientProxy();
-        UserService userService = proxy.newProxyInstance(UserService.class);
+        Client client = new Client();
+
         User user = new User();
         user.setName("teemo");
         user.setAge(12);
         System.out.println(userService.getUserInfo(user));
+
+        Calculator calculator = new Calculator(30,50);
+        System.out.println("计算结果为:"+calculatorService.add(calculator));
+    }
+
+/**
+     * 静态代码块加载，类加载时执行仅一次，主要是扫描test包里面注解有@Reference的字段，并引用上实例
+     * 后续可移动到启动类(如springboot的Application)
+     */
+    static {
+        try {
+            //测试所在包
+            File file = new File(System.getProperty("user.dir") + "\\src\\test\\java\\com\\garylee\\rpc\\test");
+            //获取测试包里面所有类
+            File[] files = file.listFiles();
+            for (File f : files) {
+                //判断是否为java文件
+                if (f.getName().contains(".java")) {
+                    Class clazz;
+
+                    //根据路径获取className如com.garylee.rpc.test.Client
+                    String fileName = "com.garylee.rpc.test." + f.getName().substring(0, f.getName().indexOf(".java"));
+                    //获取当前Class(fileName为java sources root下面以"."为分隔符的路径
+                    clazz = Class.forName(fileName);
+
+                    Field[] fields = clazz.getDeclaredFields();
+                    for (Field field : fields) {
+                        ClientProxy proxy = new ClientProxy();
+                        if (field.getAnnotations()[0].annotationType() == Reference.class) {
+                            Class c = Class.forName(field.getType().getName());
+                            //给字段注入实例
+                            field.set(clazz.newInstance(), proxy.newProxyInstance(c));
+                        }
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 ```
 ### todo
 * 包扫描时的路径尽量不使用太绝对的路径
 * bio通信->nio通信(毕竟nio效率比较高)
-* 单线程->多线程
+* 单线程->多线程->线程池
 * 每次都是一开始就实例化好服务类，可能会占用太多内存，后面看看能不能需要用到才去实例化(单例模式)
-
-
+* 直接输出service会抛出异常，待解决
+* 目前@Reference注解的字段为static(保证可重复调用),后续可参考IOC实现单例
+* 服务注册中心(如Zookeeper)
+* 异步调用(如中间件)
 
