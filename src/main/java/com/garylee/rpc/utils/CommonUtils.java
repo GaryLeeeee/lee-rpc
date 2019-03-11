@@ -1,6 +1,7 @@
 package com.garylee.rpc.utils;
 
 import com.garylee.rpc.annotation.Reference;
+import com.garylee.rpc.annotation.Service;
 
 import java.io.File;
 import java.util.*;
@@ -12,6 +13,7 @@ import java.util.*;
 public class CommonUtils {
     static String servicePackage = "com\\garylee\\rpc\\service";//默认存放服务接口的包
 
+    static String testPackage = "com\\garylee\\rpc\\test";//测试路径
     /**
      * 初始化代理对象
      */
@@ -27,7 +29,7 @@ public class CommonUtils {
                 //key如com.garylee.rpc.service.ProductService
                 //value为实例
                 //ps.别给接口加注解!!!接口不能实例!!!
-                map.put(clazz.getAnnotation(Reference.class).value().getName(),object);
+                map.put(clazz.getAnnotation(Service.class).value().getName(),object);
             }
             return map;
         } catch (Exception e) {
@@ -62,7 +64,7 @@ public class CommonUtils {
                 try {
                     Class clazz = null;
                     //赋值并判断是否加了注解
-                    if((clazz = Class.forName(className)).isAnnotationPresent(Reference.class))
+                    if((clazz = Class.forName(className)).isAnnotationPresent(Service.class))
                         classSet.add(clazz);
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();

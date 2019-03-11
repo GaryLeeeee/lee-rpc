@@ -1,11 +1,12 @@
 package com.garylee.rpc.service;
 
 import com.garylee.rpc.annotation.Reference;
+import com.garylee.rpc.annotation.Service;
 
 /**
  * Created by GaryLee on 2019-03-10 21:39.
  */
-@Reference(UserService.class)
+@Service(UserService.class)
 public class UserServiceImpl implements UserService{
     @Override
     public String getUserInfo(User user) {
