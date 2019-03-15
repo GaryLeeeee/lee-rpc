@@ -4,6 +4,7 @@ import com.garylee.rpc.annotation.Reference;
 import com.garylee.rpc.annotation.Service;
 
 import java.io.File;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -11,7 +12,7 @@ import java.util.*;
  * Created by GaryLee on 2019-03-10 19:03.
  */
 public class CommonUtils {
-    static String servicePackage = "com\\garylee\\rpc\\service";//默认存放服务接口的包
+    static String servicePackage = "com/garylee/rpc/service";//默认存放服务接口的包
 
     static String testPackage = "com\\garylee\\rpc\\test";//测试路径
     /**
@@ -46,19 +47,21 @@ public class CommonUtils {
 
         Set<Class> classSet = new HashSet<>();
         // TODO: 2019/3/10 0010 先使用绝对路径吧
-        String path = System.getProperty("user.dir")+"\\src\\main\\java\\"+servicePackage;
-        System.out.println("service包路径:"+path);
-        File file = new File(path);
+//        String path = System.getProperty("user.dir")+"\\src\\main\\java\\"+servicePackage;
+        URL resource = Thread.currentThread().getContextClassLoader().getResource(servicePackage);
+        File file = new File(resource.getFile());
+        System.out.println("service包路径:"+file.getAbsolutePath());
 
 
         File[] files = file.listFiles();
         //遍历service文件夹所有文件
         for(File f:files){
-            if(f.getName().contains(".java")){
+            if(f.getName().contains(".class")){
                 //获取该文件绝对路径
                 String paths = f.getAbsolutePath();
                 //获取包名+类名(com.garylee.rpc.service.UserService)
-                String className = paths.substring(paths.indexOf(servicePackage)).replace(".java","").replace(File.separator,".");
+                //"/"要转为"\\"，不然就抛出-1
+                String className = paths.substring(paths.indexOf(servicePackage.replace("/","\\"))).replace(".class","").replace(File.separator,".");
 
                 //如果该类被自定义注解@Reference所注解，则放入set集合
                 try {

@@ -8,6 +8,7 @@ import com.garylee.rpc.service.*;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 
 /**
  * 切记不能直接输出service
@@ -39,16 +40,18 @@ public class Client {
     static {
         try {
             //测试所在包
-            File file = new File(System.getProperty("user.dir") + "\\src\\test\\java\\com\\garylee\\rpc\\test");
+//            File file = new File(System.getProperty("user.dir") + "\\src\\test\\java\\com\\garylee\\rpc\\test");
+            URL folder = Thread.currentThread().getContextClassLoader().getResource("com/garylee/rpc/test");
+            File file = new File(folder.getFile());
             //获取测试包里面所有类
             File[] files = file.listFiles();
             for (File f : files) {
                 //判断是否为java文件
-                if (f.getName().contains(".java")) {
+                if (f.getName().contains(".class")) {
                     Class clazz;
 
                     //根据路径获取className如com.garylee.rpc.test.Client
-                    String fileName = "com.garylee.rpc.test." + f.getName().substring(0, f.getName().indexOf(".java"));
+                    String fileName = "com.garylee.rpc.test." + f.getName().substring(0, f.getName().indexOf(".class"));
                     //获取当前Class(fileName为java sources root下面以"."为分隔符的路径
                     clazz = Class.forName(fileName);
 
