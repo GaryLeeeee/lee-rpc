@@ -11,6 +11,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public String getUserInfo(User user) {
         String userInfo = "用户姓名:"+user.getName()+"\t用户年龄"+user.getAge();
+        System.out.println("查询用户:"+user.getName());
         return userInfo;
     }
 }

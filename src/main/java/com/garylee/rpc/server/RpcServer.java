@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  *
@@ -23,25 +24,13 @@ public class RpcServer {
             System.out.println("6789端口监听ing");
             //将所有的服务初始化
             Map<String,Object> services = CommonUtils.initService();
+            //加入线程池
+            Executor threadPool = new ThreadPoolExecutor(5,10,60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
             while (true){
                 Socket socket = ss.accept();
-                //创建io流
-                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                //获取request对象
-                Object object = ois.readObject();
-                RpcRequest request = (RpcRequest) object;
-                //开始执行
-                Object service = services.get(request.getClassName());
-                Class<?> clazz = service.getClass();
-                //用clazz根据方法名和参数类型确定method
-                Method method = clazz.getMethod(request.getMethodName(),request.getParamsTypes());
-                //调用方法(client调用代理对象间接调用server)
-                Object result = method.invoke(service,request.getParams());
-                //封装好response返回
-                RpcResponse response = RpcResponse.success(result);
-                oos.writeObject(response);
-                oos.flush();
+                //给线程池消费
+                RpcTask task = new RpcTask(socket,services);
+                threadPool.execute(task);
             }
         } catch (Exception e) {
             e.printStackTrace();
